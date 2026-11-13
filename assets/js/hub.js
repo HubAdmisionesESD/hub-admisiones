@@ -60,7 +60,7 @@
         backHtml +
       '</div>' +
       '<div class="topbar-r">' +
-        '<div class="logo-pill"><img src="' + ROOT + 'assets/img/logo_letra_sin_fondo.png" alt="Grupo Planeta"></div></div>' +
+        '<div class="logo-pill" style="background:#D6E6F8"><img style="mix-blend-mode:multiply" src="' + ROOT + 'assets/img/logo_letra_sin_fondo.png" alt="Grupo Planeta"></div></div>' +
     '</header>'
   ));
 
@@ -77,7 +77,7 @@
     ));
   }
 
-  wrap.appendChild(html('<footer class="foot">Hub de Admisiones ESD · Grupo Planeta</footer>'));
+  wrap.appendChild(html('<footer class="foot">Hub de Admisiones ESD</footer>'));
 
   /* ───────── Accesos rápidos (editables, como en el AdminHub) ───────── */
   var items = [];

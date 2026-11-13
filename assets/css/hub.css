@@ -164,7 +164,7 @@ button.bub{cursor:pointer;padding:0;font:inherit}
 .topbar-r{display:flex;align-items:center;gap:14px}
 .topbar-gp{font-size:12px;letter-spacing:0.08em;color:var(--muted)}
 .logo-pill{background:#D6E6F8;border-radius:10px;padding:6px 12px;display:flex;align-items:center}
-.logo-pill img{height:30px;width:auto;display:block}
+.logo-pill img{height:30px;width:auto;display:block;mix-blend-mode:multiply}
 .embudo{position:relative;width:100%;max-width:1100px;margin:10px auto 0;padding:0 24px;box-sizing:border-box}
 .cards{display:flex;flex-wrap:wrap;gap:12px}
 .fcard{flex:1 1 150px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--card-b);border-radius:12px;padding:9px 16px}
@@ -204,3 +204,12 @@ a.je-close{text-decoration:none}
 .sh-name{font-weight:700;font-size:20px;letter-spacing:-0.01em}
 /* Portada sin embudo: más espacio para el hub */
 body[data-funnel="0"] .stage{--res:130px}
+
+.shape-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;text-decoration:none}
+.shape-wrap .beat{width:100%}
+.shape-wrap:hover .shape{transform:scale(1.12)}
+.shape-wrap:hover .sh{filter:drop-shadow(0 0 22px rgba(139,92,246,0.85))}
+.shape-wrap:focus-visible{outline:3px solid #6D28D9;outline-offset:6px;border-radius:12px}
+.shape-wrap .shape{transform-origin:center}
+.shape-wrap .num{font-size:40px}
+.sh-name{font-size:21px}
