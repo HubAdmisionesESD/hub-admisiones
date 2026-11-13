@@ -59,7 +59,7 @@
         '<div><div class="brand-name">Hub de Admisiones</div><div class="brand-sub">' + esc(SUB) + '</div></div>' +
         backHtml +
       '</div>' +
-      '<div class="topbar-r"><span class="topbar-gp">Grupo Planeta</span>' +
+      '<div class="topbar-r">' +
         '<div class="logo-pill"><img src="' + ROOT + 'assets/img/logo_letra_sin_fondo.png" alt="Grupo Planeta"></div></div>' +
     '</header>'
   ));
