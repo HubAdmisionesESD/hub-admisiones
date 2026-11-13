@@ -156,7 +156,7 @@ button.bub{cursor:pointer;padding:0;font:inherit}
 .wrap{position:relative;min-height:100vh;box-sizing:border-box;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:var(--fg);display:flex;flex-direction:column}
 .bg-overlay{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;background:var(--overlay)}
 #page{position:relative}
-.topbar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 28px 0}
+.topbar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 28px 0}
 .brand{display:flex;align-items:center;gap:12px}
 .brand-sq{width:40px;height:40px;border-radius:11px;background:var(--brand-bg);border:1px solid var(--brand-b);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .brand-name{font-size:17px;font-weight:500;letter-spacing:-0.02em;color:var(--fg)}
@@ -165,19 +165,31 @@ button.bub{cursor:pointer;padding:0;font:inherit}
 .topbar-gp{font-size:12px;letter-spacing:0.08em;color:var(--muted)}
 .logo-pill{background:#FFFFFF;border-radius:10px;padding:6px 12px;display:flex;align-items:center}
 .logo-pill img{height:30px;width:auto;display:block}
-.embudo{position:relative;width:100%;max-width:1100px;margin:24px auto 0;padding:0 24px;box-sizing:border-box}
-.cards{display:flex;flex-wrap:wrap;gap:16px}
-.fcard{flex:1 1 200px;background:var(--card);border:1px solid var(--card-b);border-radius:16px;padding:18px 20px}
-.fcard-t{font-weight:600;font-size:16px;color:var(--fg)}
-.fcard-n{font-weight:700;font-size:30px;color:var(--num);margin-top:10px}
-.fcard-c{font-size:12px;color:var(--muted)}
-.mat-row{display:flex;justify-content:center;margin-top:24px}
-.mat{width:132px;box-sizing:border-box;background:var(--mat-bg);border:2px solid #FFFFFF;border-radius:12px;padding:10px 12px;text-align:center;box-shadow:var(--mat-glow)}
+.embudo{position:relative;width:100%;max-width:1100px;margin:10px auto 0;padding:0 24px;box-sizing:border-box}
+.cards{display:flex;flex-wrap:wrap;gap:12px}
+.fcard{flex:1 1 150px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--card-b);border-radius:12px;padding:9px 16px}
+.fcard-t{font-weight:600;font-size:14px;color:var(--fg)}
+.fcard-n{font-weight:700;font-size:22px;color:var(--num)}
+.fcard-c{display:none}
+.mat-row{display:flex;justify-content:center;margin-top:10px}
+.mat{width:132px;box-sizing:border-box;background:var(--mat-bg);border:2px solid #FFFFFF;border-radius:12px;padding:6px 12px;text-align:center;box-shadow:var(--mat-glow)}
 .mat-t{font-weight:600;font-size:13px;color:#FFFFFF}
-.mat-n{font-weight:700;font-size:20px;color:#FFFFFF;margin-top:4px}
-.mat-c{font-size:11px;color:var(--mat-sub)}
-.foot{position:relative;margin-top:auto;padding:36px 48px 24px;text-align:center;font-size:12px;color:var(--muted)}
+.mat-n{font-weight:700;font-size:18px;color:#FFFFFF;margin-top:0}
+.mat-c{display:none}
+.foot{position:relative;margin-top:auto;padding:8px 24px 10px;text-align:center;font-size:11px;color:var(--muted)}
 a.je-close{text-decoration:none}
 .placeholder-card{max-width:520px;margin:90px auto 0;padding:40px 32px;text-align:center;background:rgba(255,255,255,0.05);border:1px solid rgba(167,139,250,0.4);border-radius:18px}
 .placeholder-card h1{margin:0 0 10px;font-size:26px;font-weight:600}
 .placeholder-card p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+
+/* ── Escritorio: todo cabe en una pantalla (sin scroll) ── */
+#inicio{--ar:1.8333}
+#equipos-esd{--ar:1.375}
+@media (min-width:821px){
+  .wrap{height:100vh;height:100dvh}
+  #page{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center}
+  .stage{--res:230px;width:min(100%,calc((100vh - var(--res)) * var(--ar)))!important;max-width:1100px!important;margin:0 auto!important}
+}
+@media (max-width:820px){
+  .stage{width:100%!important}
+}
