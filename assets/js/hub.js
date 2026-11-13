@@ -1,0 +1,252 @@
+/* Hub de Admisiones ESD — montaje común de todas las páginas.
+ * Cada página declara en <body>:
+ *   data-root   ruta relativa a la raíz del repo ("", "../", "../../")
+ *   data-sub    subtítulo de la cabecera
+ *   data-back   (opcional) enlace del botón "Inicio"
+ *   data-funnel "1" para mostrar el embudo y la tarjeta Matrículas
+ * y su contenido dentro de <main id="page">.
+ */
+(function () {
+  'use strict';
+
+  var body = document.body;
+  var ROOT = body.getAttribute('data-root') || '';
+  var SUB = body.getAttribute('data-sub') || 'Admisiones';
+  var BACK = body.getAttribute('data-back') || '';
+  var FUNNEL = body.getAttribute('data-funnel') === '1';
+  var KEY = 'esd_accesos_v1';
+
+  var DEFAULTS = [
+    { nombre: 'CRM de admisiones', url: '' },
+    { nombre: 'Calendario de entrevistas', url: '' },
+    { nombre: 'Plantillas de email', url: '' }
+  ];
+
+  /* ───────── utilidades ───────── */
+  function html(str) {
+    var t = document.createElement('template');
+    t.innerHTML = str.trim();
+    return t.content.firstChild;
+  }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* ───────── estructura: fondo + cabecera + página + embudo + pie ───────── */
+  var page = document.getElementById('page');
+  var wrap = document.createElement('div');
+  wrap.className = 'wrap t-dark';
+  wrap.id = 'wrap';
+  body.insertBefore(wrap, page);
+
+  wrap.appendChild(html('<div class="bg-image"></div>'));
+  wrap.appendChild(html('<div class="bg-overlay"></div>'));
+  wrap.appendChild(html('<div class="bg-grid"></div>'));
+
+  var backHtml = BACK
+    ? '<a class="back-btn" href="' + esc(BACK) + '" aria-label="Volver al inicio">' +
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Inicio</a>'
+    : '';
+
+  wrap.appendChild(html(
+    '<header class="topbar">' +
+      '<div class="brand">' +
+        '<div class="brand-sq"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
+          '<rect x="2" y="2" width="7" height="7" rx="1.5" fill="#FB923C"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="#A78BFA"/>' +
+          '<rect x="2" y="11" width="7" height="7" rx="1.5" fill="#A78BFA"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FB923C"/></svg></div>' +
+        '<div><div class="brand-name">Hub de Admisiones</div><div class="brand-sub">' + esc(SUB) + '</div></div>' +
+        backHtml +
+      '</div>' +
+      '<div class="topbar-r"><span class="topbar-gp">Grupo Planeta</span>' +
+        '<div class="logo-pill"><img src="' + ROOT + 'assets/img/logo_letra_sin_fondo.png" alt="Grupo Planeta"></div></div>' +
+    '</header>'
+  ));
+
+  wrap.appendChild(page);
+
+  if (FUNNEL) {
+    function card(t) {
+      return '<div class="fcard"><div class="fcard-t">' + t + '</div><div class="fcard-n">—</div><div class="fcard-c">Dato por conectar</div></div>';
+    }
+    wrap.appendChild(html(
+      '<section class="embudo"><div class="cards">' +
+        card('Leads') + card('Contactados') + card('Entrevistados') + card('PF') +
+      '</div><div class="mat-row"><div class="mat"><div class="mat-t">Matrículas</div><div class="mat-n">—</div><div class="mat-c">Por conectar</div></div></div></section>'
+    ));
+  }
+
+  wrap.appendChild(html('<footer class="foot">Hub de Admisiones ESD · Grupo Planeta</footer>'));
+
+  /* ───────── Accesos rápidos (editables, como en el AdminHub) ───────── */
+  var items = [];
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    items = Array.isArray(saved) ? saved : DEFAULTS.slice();
+  } catch (e) { items = DEFAULTS.slice(); }
+
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) { /* sin almacenamiento */ }
+  }
+
+  var PENCIL = '<svg width="{S}" height="{S}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>';
+
+  var drawer = html(
+    '<div class="accesos-wrap" id="accWrap">' +
+      '<div class="accesos-panel">' +
+        '<div class="accesos-panel-header"><span class="accesos-panel-title">Accesos rápidos</span>' +
+          '<button class="accesos-add-btn" id="accAdd" type="button" title="Añadir acceso" aria-label="Añadir acceso">' + PENCIL.replace(/\{S\}/g, '12') + '</button></div>' +
+        '<div id="accList"></div>' +
+      '</div>' +
+      '<button class="accesos-card" id="accCard" type="button" aria-label="Accesos rápidos">' +
+        '<div class="acc-icon-wrap"><div class="acc-ring2"></div><div class="acc-ring1"></div>' +
+          '<div class="acc-icon-inner"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f0a830" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div></div>' +
+        '<span class="acc-label">Accesos Rápidos</span>' +
+      '</button>' +
+    '</div>'
+  );
+  wrap.appendChild(drawer);
+
+  var modal = html(
+    '<div class="acc-modal-overlay" id="accModal" hidden>' +
+      '<div class="acc-modal" role="dialog" aria-modal="true" aria-labelledby="accTitle">' +
+        '<div class="acc-modal-head"><h2 id="accTitle">Nuevo acceso</h2>' +
+          '<button class="acc-modal-close" id="accClose" type="button" aria-label="Cerrar">✕</button></div>' +
+        '<div class="acc-field"><label for="accNombre">Nombre *</label><input id="accNombre" type="text" placeholder="Nombre del acceso"></div>' +
+        '<div class="acc-field"><label for="accUrl">URL</label><input id="accUrl" type="url" placeholder="https://…"></div>' +
+        '<p class="acc-err" id="accErr" hidden></p>' +
+        '<div class="acc-modal-foot">' +
+          '<button class="acc-btn-delete" id="accDel" type="button" hidden>' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg><span id="accDelTxt">Eliminar</span></button>' +
+          '<button class="acc-btn-cancel" id="accCancel" type="button">Cancelar</button>' +
+          '<button class="acc-btn-save" id="accSave" type="button">Guardar</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
+  body.appendChild(modal);
+
+  var list = document.getElementById('accList');
+  var dragIdx = null;
+  var editIdx = null;
+  var confirmDel = false;
+
+  function renderList() {
+    list.textContent = '';
+    if (!items.length) {
+      var empty = document.createElement('div');
+      empty.className = 'acc-loading';
+      empty.textContent = 'Sin accesos todavía';
+      list.appendChild(empty);
+      return;
+    }
+    items.forEach(function (a, i) {
+      var row = document.createElement('div');
+      row.className = 'acc-item';
+      row.draggable = true;
+      row.style.marginBottom = '5px';
+
+      var dot = document.createElement('div');
+      dot.className = 'acc-dot';
+
+      var txt = document.createElement('span');
+      txt.className = 'acc-text' + (a.url ? ' link' : '');
+      txt.textContent = a.nombre;
+      if (a.url) txt.addEventListener('click', function () { window.open(a.url, '_blank', 'noopener'); });
+
+      var edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'acc-edit';
+      edit.setAttribute('aria-label', 'Editar acceso');
+      edit.innerHTML = PENCIL.replace(/\{S\}/g, '11');
+      edit.addEventListener('click', function (ev) { ev.stopPropagation(); openModal(i); });
+
+      row.appendChild(dot); row.appendChild(txt); row.appendChild(edit);
+
+      row.addEventListener('dragstart', function (ev) {
+        dragIdx = i;
+        try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', String(i)); } catch (e) {}
+        setTimeout(function () { row.classList.add('dragging'); }, 0);
+      });
+      row.addEventListener('dragend', function () {
+        row.classList.remove('dragging');
+        [].forEach.call(list.querySelectorAll('.acc-item'), function (x) { x.classList.remove('drag-over'); });
+        dragIdx = null;
+      });
+      row.addEventListener('dragover', function (ev) {
+        ev.preventDefault();
+        if (dragIdx === null) return;
+        [].forEach.call(list.querySelectorAll('.acc-item'), function (x) { x.classList.remove('drag-over'); });
+        row.classList.add('drag-over');
+      });
+      row.addEventListener('drop', function (ev) {
+        ev.preventDefault();
+        if (dragIdx === null || dragIdx === i) return;
+        var moved = items.splice(dragIdx, 1)[0];
+        items.splice(i, 0, moved);
+        persist(); renderList();
+      });
+
+      list.appendChild(row);
+    });
+  }
+
+  var nombreIn = document.getElementById('accNombre');
+  var urlIn = document.getElementById('accUrl');
+  var errP = document.getElementById('accErr');
+  var delBtn = document.getElementById('accDel');
+  var delTxt = document.getElementById('accDelTxt');
+
+  function setErr(msg) { errP.textContent = msg || ''; errP.hidden = !msg; }
+
+  function openModal(idx) {
+    editIdx = (typeof idx === 'number') ? idx : null;
+    confirmDel = false;
+    delTxt.textContent = 'Eliminar';
+    setErr('');
+    document.getElementById('accTitle').textContent = editIdx === null ? 'Nuevo acceso' : 'Editar acceso';
+    nombreIn.value = editIdx === null ? '' : items[editIdx].nombre;
+    urlIn.value = editIdx === null ? '' : (items[editIdx].url || '');
+    delBtn.hidden = editIdx === null;
+    modal.hidden = false;
+    setTimeout(function () { nombreIn.focus(); }, 30);
+  }
+  function closeModal() { modal.hidden = true; }
+
+  document.getElementById('accAdd').addEventListener('click', function (e) { e.stopPropagation(); openModal(); });
+  document.getElementById('accClose').addEventListener('click', closeModal);
+  document.getElementById('accCancel').addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+  nombreIn.addEventListener('input', function () { setErr(''); });
+
+  document.getElementById('accSave').addEventListener('click', function () {
+    var nombre = nombreIn.value.trim();
+    var url = urlIn.value.trim();
+    if (!nombre) { setErr('El nombre es obligatorio.'); return; }
+    if (editIdx !== null) items[editIdx] = { nombre: nombre, url: url };
+    else items.unshift({ nombre: nombre, url: url });
+    persist(); closeModal(); renderList();
+  });
+
+  delBtn.addEventListener('click', function () {
+    if (editIdx === null) return;
+    if (!confirmDel) { confirmDel = true; delTxt.textContent = 'Confirmar eliminar'; return; }
+    items.splice(editIdx, 1);
+    persist(); closeModal(); renderList();
+  });
+
+  var accWrap = document.getElementById('accWrap');
+  document.getElementById('accCard').addEventListener('click', function (e) {
+    e.stopPropagation();
+    accWrap.classList.toggle('open');
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#accWrap') && !e.target.closest('#accModal')) accWrap.classList.remove('open');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeModal(); accWrap.classList.remove('open'); }
+  });
+
+  renderList();
+})();
