@@ -1,3 +1,76 @@
+/* ── Contraseña común del Hub + distintivo de estrellitas ──
+ * Aviso: es un freno de cortesía en el navegador, no seguridad real. */
+(function () {
+  'use strict';
+  var HASH = 2610499252639749; // hash de la contraseña (no se guarda en claro)
+  function hash(str) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (var i = 0, ch; i < str.length; i++) {
+      ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  }
+  var overlay, input, errEl, msgEl, cb = null;
+
+  function build() {
+    if (overlay) return;
+    overlay = document.createElement('div');
+    overlay.className = 'pwd-overlay';
+    overlay.hidden = true;
+    var box = document.createElement('div');
+    box.className = 'pwd-modal';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    var h = document.createElement('h3'); h.textContent = 'Acción protegida';
+    msgEl = document.createElement('p');
+    input = document.createElement('input'); input.type = 'password'; input.placeholder = 'Contraseña'; input.autocomplete = 'off';
+    errEl = document.createElement('div'); errEl.className = 'pwd-err'; errEl.textContent = 'Contraseña incorrecta'; errEl.hidden = true;
+    var row = document.createElement('div'); row.className = 'pwd-btns';
+    var no = document.createElement('button'); no.type = 'button'; no.className = 'pwd-btn cancel'; no.textContent = 'Cancelar';
+    var ok = document.createElement('button'); ok.type = 'button'; ok.className = 'pwd-btn ok'; ok.textContent = 'Confirmar';
+    row.appendChild(no); row.appendChild(ok);
+    [h, msgEl, input, errEl, row].forEach(function (n) { box.appendChild(n); });
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    function close() { overlay.hidden = true; cb = null; }
+    function confirm() {
+      if (hash(input.value) === HASH) { var f = cb; close(); if (f) f(); }
+      else { errEl.hidden = false; input.value = ''; input.focus(); }
+    }
+    no.addEventListener('click', close);
+    ok.addEventListener('click', confirm);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') close(); });
+  }
+  function ask(msg, fn) {
+    build();
+    cb = fn;
+    msgEl.textContent = msg || 'Introduce la contraseña para continuar.';
+    errEl.hidden = true; input.value = '';
+    overlay.hidden = false;
+    setTimeout(function () { input.focus(); }, 30);
+  }
+  function badge() {
+    if (document.getElementById('pwdBadge')) return;
+    var b = document.createElement('div');
+    b.id = 'pwdBadge';
+    b.className = 'pwd-badge';
+    b.title = 'Las acciones de importar y borrar piden contraseña';
+    b.setAttribute('aria-label', 'Acciones protegidas con contraseña');
+    b.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>✱✱✱✱✱✱✱✱✱✱✱✱✱</span>';
+    document.body.appendChild(b);
+  }
+  window.HubAuth = { ask: ask, badge: badge };
+  document.addEventListener('DOMContentLoaded', function () {
+    var app = document.body.getAttribute('data-app');
+    if (app === 'vac' || app === 'org') badge();
+  });
+})();
+
 /* Hub de Admisiones ESD — montaje común de todas las páginas.
  * Cada página declara en <body>:
  *   data-root   ruta relativa a la raíz del repo ("", "../", "../../")
@@ -231,9 +304,11 @@
 
   delBtn.addEventListener('click', function () {
     if (editIdx === null) return;
-    if (!confirmDel) { confirmDel = true; delTxt.textContent = 'Confirmar eliminar'; return; }
-    items.splice(editIdx, 1);
-    persist(); closeModal(); renderList();
+    var idx = editIdx;
+    window.HubAuth.ask('Introduce la contraseña para eliminar este acceso.', function () {
+      items.splice(idx, 1);
+      persist(); closeModal(); renderList();
+    });
   });
 
   var accWrap = document.getElementById('accWrap');
