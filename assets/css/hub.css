@@ -340,4 +340,5 @@ body[data-gatos*="ia"] .cards{flex-wrap:nowrap;gap:12px}
 body[data-gatos*="ia"] .fcard{flex:1 1 0;min-width:0;padding:13px 12px}
 body[data-gatos*="ia"] .mat-row{justify-content:flex-start;margin-top:18px}
 body[data-gatos*="ia"] .mat{width:170px;margin-left:calc(33.2vw - 85px)}
+body[data-gatos*="ia"] .foot{width:max-content;max-width:none;margin-left:47.5vw;padding-left:0;padding-right:0;transform:translateX(-50%)}
 }
