@@ -334,6 +334,10 @@ body[data-app] #page{padding-bottom:44px}
 .gato-bocadillo::after{box-sizing:border-box;width:13px;height:13px;margin-top:-6px;right:-8px;background:#fff;border:2px solid #FB923C;border-left-color:transparent;border-bottom-color:transparent;border-radius:0 3px 0 0}
 
 /* Capa 2: la barra del embudo se desplaza a la izquierda para dejar sitio al bocadillo del gato IA */
-@media (min-width:821px){body[data-gatos*="ia"] .embudo{width:auto;margin-right:clamp(300px,33vw,460px);margin-left:auto}
-body[data-gatos*="ia"] .cards{flex-wrap:nowrap}
-body[data-gatos*="ia"] .fcard{flex:1 1 0;min-width:0;padding:9px 12px}}
+@media (min-width:821px){
+body[data-gatos*="ia"] .embudo{max-width:none;width:63.5vw;margin:0 0 0 14.3vw;padding:0}
+body[data-gatos*="ia"] .cards{flex-wrap:nowrap;gap:12px}
+body[data-gatos*="ia"] .fcard{flex:1 1 0;min-width:0;padding:13px 12px}
+body[data-gatos*="ia"] .mat-row{justify-content:flex-start;margin-top:18px}
+body[data-gatos*="ia"] .mat{width:170px;margin-left:calc(33.2vw - 85px)}
+}
