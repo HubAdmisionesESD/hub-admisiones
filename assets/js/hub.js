@@ -152,6 +152,56 @@
 
   wrap.appendChild(html('<footer class="foot">Hub de Admisiones ESD</footer>'));
 
+  /* ───────── Gatos decorativos (data-gatos="birrete,planeta,ia,tumbado") ─────────
+   * Los GIF van en assets/img/gato-<nombre>.webp. Si falta alguno, simplemente no se muestra. */
+  (function () {
+    var lista = (body.getAttribute('data-gatos') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    lista.forEach(function (nombre) {
+      var img = document.createElement('img');
+      img.className = 'gato gato-' + nombre;
+      img.alt = nombre === 'ia' ? 'Asistente' : '';
+      if (nombre !== 'ia') img.setAttribute('aria-hidden', 'true');
+      img.src = ROOT + 'assets/img/gato-' + nombre + '.webp';
+      img.addEventListener('error', function () { img.remove(); var b = document.getElementById('gatoBocadillo'); if (b && nombre === 'ia') b.remove(); });
+
+      if (nombre !== 'ia') { wrap.appendChild(img); return; }
+
+      /* Gato IA: más pequeño, abajo a la derecha, con bocadillo */
+      var caja = document.createElement('div');
+      caja.className = 'gato-ia-box';
+      var bocadillo = document.createElement('div');
+      bocadillo.id = 'gatoBocadillo';
+      bocadillo.className = 'gato-bocadillo';
+      bocadillo.setAttribute('role', 'status');
+      bocadillo.appendChild(document.createTextNode('m'));
+      var ia = document.createElement('span');
+      ia.className = 'gato-ia-txt';
+      ia.textContent = 'IA';
+      bocadillo.appendChild(ia);
+      bocadillo.appendChild(document.createTextNode('u!'));
+      caja.appendChild(bocadillo);
+      var btnGato = document.createElement('button');
+      btnGato.type = 'button';
+      btnGato.className = 'gato-ia-btn';
+      btnGato.setAttribute('aria-label', 'Asistente mIAu');
+      btnGato.appendChild(img);
+      caja.appendChild(btnGato);
+      wrap.appendChild(caja);
+
+      var timer = null;
+      function mostrar() {
+        bocadillo.classList.add('on');
+        clearTimeout(timer);
+        timer = setTimeout(function () { bocadillo.classList.remove('on'); }, 9000);
+      }
+      btnGato.addEventListener('click', function () {
+        if (bocadillo.classList.contains('on')) { bocadillo.classList.remove('on'); clearTimeout(timer); }
+        else mostrar();
+      });
+      setTimeout(mostrar, 1200);
+    });
+  })();
+
   /* ───────── Accesos rápidos (editables, como en el AdminHub) ───────── */
   var items = [];
   try {
