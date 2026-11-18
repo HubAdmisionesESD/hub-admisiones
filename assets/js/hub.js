@@ -162,30 +162,72 @@
   /* Compartido para todos los usuarios: Cloudflare Worker + KV (el mismo del AdminHub).
    * localStorage queda como copia de respaldo si el Worker no responde. */
   var WORKER_URL = ((window.HUB_CONFIG || {}).WORKER_URL || '').replace(/\/+$/, '');
-  var skipRemote = false;
 
-  function persist() {
-    skipRemote = true;
-    try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) { /* sin almacenamiento */ }
-    if (!WORKER_URL) return;
-    fetch(WORKER_URL + '/kv', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: KEY, value: items })
-    }).catch(function () { /* sin red: queda la copia local */ });
+  var pending = 0; // operaciones en curso: mientras haya, no se pisa la lista con una lectura antigua
+
+  function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function ensureIds(arr) {
+    arr.forEach(function (a) { if (!a.id) a.id = newId(); });
+    return arr;
   }
+  function saveLocal() {
+    try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) { /* sin almacenamiento */ }
+  }
+  ensureIds(items);
 
-  function loadRemote() {
+  /* Cada cambio se aplica sobre la ÚLTIMA lista de Cloudflare (leer → modificar → guardar),
+   * así no se pisan los accesos que han añadido otras personas. */
+  function applyOp(list, op) {
+    var i;
+    if (op.t === 'add') { list.unshift(op.item); }
+    else if (op.t === 'edit') {
+      for (i = 0; i < list.length; i++) if (list[i].id === op.id) { list[i].nombre = op.nombre; list[i].url = op.url; }
+    } else if (op.t === 'del') {
+      list = list.filter(function (a) { return a.id !== op.id; });
+    } else if (op.t === 'move') {
+      var fi = -1, ti = -1;
+      for (i = 0; i < list.length; i++) { if (list[i].id === op.id) fi = i; if (list[i].id === op.target) ti = i; }
+      if (fi >= 0 && ti >= 0 && fi !== ti) { var m = list.splice(fi, 1)[0]; list.splice(ti, 0, m); }
+    }
+    return list;
+  }
+  function parseRemote(data) {
+    if (!data || !data.value) return null;
+    var v = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+    return Array.isArray(v) ? ensureIds(v) : null;
+  }
+  function change(op) {
+    // 1) se ve al instante
+    items = applyOp(items.slice(), op);
+    saveLocal(); renderList();
     if (!WORKER_URL) return;
+    // 2) se sincroniza con la lista compartida
+    pending++;
     fetch(WORKER_URL + '/kv?key=' + encodeURIComponent(KEY))
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (skipRemote || !data || !data.value) return;
-        var v = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
-        if (!Array.isArray(v)) return;
-        items = v;
-        try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) { /* sin almacenamiento */ }
-        renderList();
+        var base = parseRemote(data);
+        // Si Cloudflare está vacío, la primera lista que se guarda lo inicializa.
+        var merged = base ? applyOp(base, op) : items;
+        return fetch(WORKER_URL + '/kv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: KEY, value: merged })
+        }).then(function () { items = merged; saveLocal(); });
+      })
+      .catch(function () { /* sin red: queda la copia local */ })
+      .then(function () { pending--; renderList(); });
+  }
+
+  function loadRemote() {
+    if (!WORKER_URL || pending) return;
+    fetch(WORKER_URL + '/kv?key=' + encodeURIComponent(KEY))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (pending) return;
+        var v = parseRemote(data);
+        if (!v) return;
+        items = v; saveLocal(); renderList();
       })
       .catch(function () { /* sin red: se usa la copia local */ });
   }
@@ -283,9 +325,7 @@
       row.addEventListener('drop', function (ev) {
         ev.preventDefault();
         if (dragIdx === null || dragIdx === i) return;
-        var moved = items.splice(dragIdx, 1)[0];
-        items.splice(i, 0, moved);
-        persist(); renderList();
+        change({ t: 'move', id: items[dragIdx].id, target: items[i].id });
       });
 
       list.appendChild(row);
@@ -324,17 +364,17 @@
     var nombre = nombreIn.value.trim();
     var url = urlIn.value.trim();
     if (!nombre) { setErr('El nombre es obligatorio.'); return; }
-    if (editIdx !== null) items[editIdx] = { nombre: nombre, url: url };
-    else items.unshift({ nombre: nombre, url: url });
-    persist(); closeModal(); renderList();
+    if (editIdx !== null) change({ t: 'edit', id: items[editIdx].id, nombre: nombre, url: url });
+    else change({ t: 'add', item: { id: newId(), nombre: nombre, url: url } });
+    closeModal();
   });
 
   delBtn.addEventListener('click', function () {
     if (editIdx === null) return;
     var idx = editIdx;
     window.HubAuth.ask('Introduce la contraseña para eliminar este acceso.', function () {
-      items.splice(idx, 1);
-      persist(); closeModal(); renderList();
+      change({ t: 'del', id: items[idx].id });
+      closeModal();
     });
   });
 
@@ -342,6 +382,7 @@
   document.getElementById('accCard').addEventListener('click', function (e) {
     e.stopPropagation();
     accWrap.classList.toggle('open');
+    if (accWrap.classList.contains('open')) loadRemote();
   });
   document.addEventListener('click', function (e) {
     if (!e.target.closest('#accWrap') && !e.target.closest('#accModal')) accWrap.classList.remove('open');
