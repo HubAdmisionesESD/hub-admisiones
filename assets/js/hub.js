@@ -156,6 +156,23 @@
    * Los GIF van en assets/img/gato-<nombre>.webp. Si falta alguno, simplemente no se muestra. */
   (function () {
     var lista = (body.getAttribute('data-gatos') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+
+    /* Ciclo aparece/desaparece: visible visMs, oculto hideMs, y vuelta a empezar. */
+    function ciclo(visMs, hideMs, alMostrar, alOcultar) {
+      function on() { alMostrar(); setTimeout(off, visMs); }
+      function off() { alOcultar(); setTimeout(on, hideMs); }
+      setTimeout(on, 600);
+    }
+
+    /* Posiciones/tamaños del gato planeta: la primera es la más grande; el resto, más pequeñas y al otro lado, alternando */
+    var POS_PLANETA = [
+      { l: '368px', t: 'clamp(100px,15vh,150px)', s: 1 },
+      { l: '88vw', t: '18vh', s: 0.75 },
+      { l: '14vw', t: '52vh', s: 0.6 },
+      { l: '84vw', t: '57vh', s: 0.5 },
+      { l: '24vw', t: '64vh', s: 0.45 }
+    ];
+
     lista.forEach(function (nombre) {
       var img = document.createElement('img');
       img.className = 'gato gato-' + nombre;
@@ -164,9 +181,25 @@
       img.src = ROOT + 'assets/img/gato-' + nombre + '.webp';
       img.addEventListener('error', function () { img.remove(); var b = document.getElementById('gatoBocadillo'); if (b && nombre === 'ia') b.remove(); });
 
-      if (nombre !== 'ia') { wrap.appendChild(img); return; }
+      if (nombre !== 'ia') {
+        img.classList.add('gato-ciclo');
+        wrap.appendChild(img);
+        var mostrar = function () { img.classList.add('vis'); };
+        var ocultar = function () { img.classList.remove('vis'); };
+        if (nombre === 'birrete') ciclo(3000, 20000, mostrar, ocultar);
+        else if (nombre === 'tumbado') ciclo(6000, 15000, mostrar, ocultar);
+        else if (nombre === 'planeta') {
+          var n = 0;
+          ciclo(1000, 20000, function () {
+            var p = POS_PLANETA[n % POS_PLANETA.length]; n++;
+            img.style.left = p.l; img.style.top = p.t; img.style.setProperty('--s', p.s);
+            img.classList.add('vis');
+          }, ocultar);
+        }
+        return;
+      }
 
-      /* Gato IA: más pequeño, abajo a la derecha, con bocadillo */
+      /* Gato IA: más pequeño, abajo a la derecha, con bocadillo. Aparece 2 s y se oculta 5 s; gato y bocadillo parpadean a la vez */
       var caja = document.createElement('div');
       caja.className = 'gato-ia-box';
       var bocadillo = document.createElement('div');
@@ -187,18 +220,9 @@
       btnGato.appendChild(img);
       caja.appendChild(btnGato);
       wrap.appendChild(caja);
-
-      var timer = null;
-      function mostrar() {
-        bocadillo.classList.add('on');
-        clearTimeout(timer);
-        timer = setTimeout(function () { bocadillo.classList.remove('on'); }, 9000);
-      }
-      btnGato.addEventListener('click', function () {
-        if (bocadillo.classList.contains('on')) { bocadillo.classList.remove('on'); clearTimeout(timer); }
-        else mostrar();
-      });
-      setTimeout(mostrar, 1200);
+      ciclo(2000, 5000,
+        function () { caja.classList.add('on'); bocadillo.classList.add('on'); },
+        function () { caja.classList.remove('on'); bocadillo.classList.remove('on'); });
     });
   })();
 

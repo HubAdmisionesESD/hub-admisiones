@@ -314,7 +314,7 @@ body[data-app] #page{padding-bottom:44px}
 /* ── Gatos decorativos ── */
 .gato{position:fixed;pointer-events:none;user-select:none;height:auto}
 .gato-birrete{left:clamp(100px,11vw,150px);bottom:34px;width:clamp(90px,11vw,150px);z-index:3}
-.gato-planeta{left:368px;top:clamp(100px,15vh,150px);transform:translateX(-50%);width:clamp(120px,15vw,210px);z-index:3}
+.gato-planeta{left:368px;top:clamp(100px,15vh,150px);transform:translateX(-50%);width:calc(clamp(120px,15vw,210px)*var(--s,1));z-index:3}
 .gato-tumbado{right:16px;bottom:10px;width:clamp(170px,20vw,290px);z-index:301;opacity:.85}
 .gato-ia-box{position:fixed;right:clamp(90px,8vw,140px);bottom:30px;z-index:60;display:flex;flex-direction:row;align-items:center;gap:12px}
 .gato-ia-btn{border:none;background:none;padding:0;cursor:pointer;flex-shrink:0}
@@ -342,3 +342,12 @@ body[data-gatos*="ia"] .mat-row{justify-content:flex-start;margin-top:18px}
 body[data-gatos*="ia"] .mat{width:170px;margin-left:calc(33.2vw - 85px)}
 body[data-gatos*="ia"] .foot{width:max-content;max-width:none;margin-left:47.5vw;padding-left:0;padding-right:0;transform:translateX(-50%)}
 }
+
+/* Gatos con ciclo aparece/desaparece */
+.gato-ciclo{opacity:0;visibility:hidden;transition:opacity .4s ease,visibility 0s linear .4s}
+.gato-ciclo.vis{opacity:1;visibility:visible;transition:opacity .4s ease}
+.gato-tumbado.gato-ciclo.vis{opacity:.85}
+.gato-ia-box{opacity:0;visibility:hidden;transition:opacity .4s ease,visibility 0s linear .4s}
+.gato-ia-box.on{opacity:1;visibility:visible;transition:opacity .4s ease}
+.gato-ia-box.on .gato-ia-btn .gato{animation:parpadeo-bocadillo 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.gato-ia-box.on .gato-ia-btn .gato{animation:none}}
