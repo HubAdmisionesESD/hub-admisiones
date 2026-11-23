@@ -158,19 +158,19 @@
     var lista = (body.getAttribute('data-gatos') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
 
     /* Ciclo aparece/desaparece: visible visMs, oculto hideMs, y vuelta a empezar. */
-    function ciclo(visMs, hideMs, alMostrar, alOcultar) {
+    function ciclo(visMs, hideMs, alMostrar, alOcultar, inicioMs) {
       function on() { alMostrar(); setTimeout(off, visMs); }
       function off() { alOcultar(); setTimeout(on, hideMs); }
-      setTimeout(on, 600);
+      setTimeout(on, inicioMs == null ? 600 : inicioMs);
     }
 
     /* Posiciones/tamaños del gato planeta: la primera es la más grande; el resto, más pequeñas y al otro lado, alternando */
     var POS_PLANETA = [
       { l: '368px', t: 'clamp(100px,15vh,150px)', s: 1 },
-      { l: '88vw', t: '18vh', s: 0.75 },
-      { l: '14vw', t: '52vh', s: 0.6 },
-      { l: '84vw', t: '57vh', s: 0.5 },
-      { l: '24vw', t: '64vh', s: 0.45 }
+      { l: '88vw', t: '18vh', s: 0.85 },
+      { l: '14vw', t: '52vh', s: 0.75 },
+      { l: '84vw', t: '57vh', s: 0.7 },
+      { l: '24vw', t: '64vh', s: 0.65 }
     ];
 
     lista.forEach(function (nombre) {
@@ -194,7 +194,7 @@
             var p = POS_PLANETA[n % POS_PLANETA.length]; n++;
             img.style.left = p.l; img.style.top = p.t; img.style.setProperty('--s', p.s);
             img.classList.add('vis');
-          }, ocultar);
+          }, ocultar, 20000);
         }
         return;
       }
